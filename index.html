@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jindal Star Pipes – Quotation Calculator | Vijay Sales Corporation</title>
+
+<style>
+  :root{ --brand:#24364e; }
+  body{font-family:Arial,Helvetica,sans-serif;background:#f7f8fb;color:#333;margin:0}
+  header{background:var(--brand);color:#fff;padding:10px 14px;text-align:center;font-weight:700}
+  main{max-width:980px;margin:24px auto;padding:0 16px}
+  h1{color:var(--brand);margin:6px 0 14px}
+
+  .card{background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:16px;margin:14px 0;width:100%;display:block}
+  label{display:block;margin:10px 0 6px;font-weight:600}
+  select,input{width:100%;padding:10px;border:1px solid #ccd1d9;border-radius:6px;background:#fff;min-height:44px}
+
+  .row{display:grid;gap:12px}
+  @media(min-width:720px){
+    .row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+  }
+
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}
+  .btn.secondary{background:#fff;color:var(--brand);border:2px solid var(--brand)}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  #quoteTable{width:100%;table-layout:auto;min-width:820px}
+  th,td{border:1px solid #e3e6eb;padding:10px;text-align:center}
+  th{background:var(--brand);color:#fff}
+  tfoot td{font-weight:700}
+
+  .flex{display:flex;gap:10px;flex-wrap:wrap}
+  .right{justify-content:flex-end}
+  .divider{border:0;border-top:1px solid #e3e6eb;margin:16px 0}
+  .powered-by{display:block;width:100%;text-align:center;margin:16px 0 0;color:#555;font-size:14px}
+
+  /* Mobile card table */
+  @media (max-width:640px){
+    main{padding:0 12px}
+    h1{font-size:clamp(20px,5.5vw,26px)}
+    label{font-size:14px}
+    th,td{padding:8px 6px;font-size:13px}
+
+    #quoteTable{min-width:0;border-collapse:separate;border-spacing:0 12px}
+    #quoteTable thead{display:none}
+
+    #quoteTable tbody tr{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fff;
+      border:1px solid #e3e6eb;border-radius:8px;padding:12px;
+    }
+    #quoteTable tbody td{border:none;padding:0;text-align:left;background:#fff;font-size:14px}
+    #quoteTable tbody td:nth-child(1)::before{content:"Product: ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(2)::before{content:"Size (mm): ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(3)::before{content:"Type: ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(4)::before{content:"Unit (₹/m): ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(5)::before{content:"Pipes: ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(6)::before{content:"Metres: ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(7)::before{content:"Line Total (₹): ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(8)::before{content:"Remove: ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(8){grid-column:1 / -1;justify-self:end}
+
+    #quoteTable tfoot tr{
+      display:grid;grid-template-columns:1fr auto;gap:8px;background:#fff;
+      border:1px solid #e3e6eb;border-radius:8px;padding:12px;
+    }
+    #quoteTable tfoot td{border:none;padding:0;text-align:left}
+    .row{grid-template-columns:1fr !important}
+    .card .flex.right{justify-content:stretch;flex-direction:column}
+    .card .flex.right .btn{width:100%}
+  }
+</style>
+
+<!-- jsPDF + AutoTable -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+<header>
+  Vijay Sales Corporation • sales@vijaysalescorp.com • +91 9999889008
+</header>
+
+<main>
+  <h1>Jindal Star Pipes – Price & Quotation Calculator</h1>
+
+  <div class="card">
+    <div class="row cols-4">
+      <div>
+        <label for="category">Pipe Group</label>
+        <select id="category"></select>
+      </div>
+      <div>
+        <label for="size">Size (mm)</label>
+        <select id="size"></select>
+      </div>
+      <div>
+        <label for="ptype">Type</label>
+        <select id="ptype"></select>
+      </div>
+      <div>
+        <label for="pipes">Number of Pipes</label>
+        <input type="number" id="pipes" value="1" min="1">
+      </div>
+
+      <div>
+        <label for="unitPrice">List Price (₹/metre)</label>
+        <input type="text" id="unitPrice" readonly>
+      </div>
+      <div>
+        <label for="discount">Discount (%)</label>
+        <input type="number" id="discount" value="48" readonly>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn" onclick="addItem()">Add to Quotation</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:8px 0 0;color:#666;font-size:12px;">
+      Note: 1 pipe = <strong>6 metres</strong>. Prices are per metre before discount.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px">Quotation Summary</h2>
+    <div class="table-responsive">
+      <table id="quoteTable">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Size (mm)</th>
+            <th>Type</th>
+            <th>Unit (₹/m)</th>
+            <th>Pipes</th>
+            <th>Metres</th>
+            <th>Line Total (₹)</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6" style="text-align:right">Sub-Total</td>
+            <td id="subTotal">₹0</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan="6" style="text-align:right">GST (18%)</td>
+            <td id="gstAmt">₹0</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan="6" style="text-align:right"><strong>Grand Total</strong></td>
+            <td id="grandTotal">₹0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <hr class="divider">
+
+    <div class="flex right">
+      <button class="btn" onclick="downloadPDF()">Download PDF</button>
+      <button class="btn secondary" onclick="sendWA()">Send via WhatsApp</button>
+      <button class="btn secondary" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
+
+  <p class="powered-by">
+    ⚡ Powered by <strong>Vijay Sales Corporation</strong> – India’s Piping Experts since 1961.
+  </p>
+</main>
+
+<script>
+/* ========= PRICE DATA (₹/metre) =========
+   From JINDAL STAR PRICE LIST 07/07/2025 (per metre). Unavailable entries removed.
+*/
+const DATA = {
+  "GI Pipes IS:1239 (per metre)": {
+    typeLabel: "Class",
+    types: ["Light (A)","Medium (B)","Heavy (C)"],
+    pricesBySize: {
+      "15":{"Light (A)":164,"Medium (B)":180,"Heavy (C)":203},
+      "20":{"Light (A)":205,"Medium (B)":230,"Heavy (C)":251},
+      "25":{"Light (A)":275,"Medium (B)":325,"Heavy (C)":383},
+      "32":{"Light (A)":341,"Medium (B)":407,"Heavy (C)":487},
+      "40":{"Light (A)":439,"Medium (B)":466,"Heavy (C)":555},
+      "50":{"Light (A)":543,"Medium (B)":652,"Heavy (C)":778},
+      "65":{"Light (A)":764,"Medium (B)":856,"Heavy (C)":1011},
+      "80":{"Light (A)":864,"Medium (B)":1047,"Heavy (C)":1197},
+      "100":{"Light (A)":1270,"Medium (B)":1515,"Heavy (C)":1794},
+      "125":{"Medium (B)":2026,"Heavy (C)":2255},
+      "150":{"Medium (B)":2379,"Heavy (C)":2601}
+    }
+  },
+
+  "MS Pipes IS:1239 (per metre)": {
+    typeLabel: "Class",
+    types: ["Light (A)","Medium (B)","Heavy (C)"],
+    pricesBySize: {
+      "15":{"Light (A)":114,"Medium (B)":136,"Heavy (C)":160},
+      "20":{"Light (A)":162,"Medium (B)":172,"Heavy (C)":209},
+      "25":{"Light (A)":226,"Medium (B)":264,"Heavy (C)":323},
+      "32":{"Light (A)":287,"Medium (B)":330,"Heavy (C)":408},
+      "40":{"Light (A)":365,"Medium (B)":380,"Heavy (C)":473},
+      "50":{"Light (A)":461,"Medium (B)":546,"Heavy (C)":671},
+      "65":{"Light (A)":643,"Medium (B)":692,"Heavy (C)":854},
+      "80":{"Light (A)":755,"Medium (B)":903,"Heavy (C)":1068},
+      "100":{"Light (A)":1091,"Medium (B)":1303,"Heavy (C)":1559},
+      "125":{"Medium (B)":1729,"Heavy (C)":1929},
+      "150":{"Medium (B)":2064,"Heavy (C)":2292}
+    }
+  },
+
+  "MS Pipes IS:3589 Gr.330 (per metre)": {
+    typeLabel: "Thickness",
+    // thickness options vary by size; we build per-size maps:
+    pricesBySize: {
+      "200":{"4.00mm":2392,"4.85mm":2782,"5.00mm":2901,"6.00mm":3498,"6.35mm":3754,"7.00mm":4103,"8.00mm":4665,"9.50mm":5509},
+      "250":{"4.00mm":2989,"4.85mm":3500,"5.00mm":3661,"6.00mm":4367,"6.35mm":4686,"7.00mm":5152,"8.00mm":5919,"9.50mm":6897},
+      "300":{"4.85mm":4171,"5.00mm":4331,"6.00mm":5173,"6.35mm":5585,"7.00mm":6050,"8.00mm":6821,"9.50mm":8320},
+      "350":{"5.00mm":5319,"6.00mm":5766,"6.35mm":6218,"7.00mm":6713,"8.00mm":7767,"9.50mm":9130},
+      "400":{"5.00mm":8545,"6.00mm":9288,"6.35mm":10030,"7.00mm":10852,"8.00mm":12491,"9.50mm":14770},
+      "450":{"5.00mm":9797,"6.00mm":10650,"6.35mm":11502,"7.00mm":12445,"8.00mm":14329,"9.50mm":16951},
+      "500":{"5.00mm":11085,"6.00mm":12053,"6.35mm":13018,"7.00mm":14090,"8.00mm":16224,"9.50mm":19199},
+      "600":{"5.00mm":14047,"6.00mm":14985,"6.35mm":16188,"7.00mm":17522,"8.00mm":20184,"9.50mm":23895}
+    }
+  }
+};
+
+/* ========= UI ELEMENTS ========= */
+const $cat   = document.getElementById('category');
+const $size  = document.getElementById('size');
+const $ptype = document.getElementById('ptype');
+const $pipes = document.getElementById('pipes');
+const $unit  = document.getElementById('unitPrice');
+const $disc  = document.getElementById('discount');
+const $tbody = document.querySelector('#quoteTable tbody');
+const $sub   = document.getElementById('subTotal');
+const $gst   = document.getElementById('gstAmt');
+const $grand = document.getElementById('grandTotal');
+
+let rows = [];
+
+/* ========= INIT ========= */
+(function init(){
+  Object.keys(DATA).forEach(name=>{
+    const o = document.createElement('option'); o.value = name; o.textContent = name; $cat.appendChild(o);
+  });
+  onCategory();
+})();
+$cat.addEventListener('change', onCategory);
+$size.addEventListener('change', onSizeOrType);
+$ptype.addEventListener('change', updateUnit);
+
+function onCategory(){
+  $size.innerHTML = ''; $ptype.innerHTML = ''; $unit.value = '';
+  const group = DATA[$cat.value];
+  // Sizes = keys of pricesBySize
+  Object.keys(group.pricesBySize)
+    .sort((a,b)=>parseInt(a,10)-parseInt(b,10))
+    .forEach(mm=>{
+      const o = document.createElement('option'); o.value = mm; o.textContent = mm; $size.appendChild(o);
+    });
+  onSizeOrType();
+}
+
+function onSizeOrType(){
+  $ptype.innerHTML = ''; $unit.value = '';
+  const group = DATA[$cat.value];
+  const sizeKey = $size.value;
+  const map = group.pricesBySize[sizeKey] || {};
+
+  // Build type list applicable to this size
+  const typesForSize = Object.keys(map);
+  typesForSize.sort((a,b)=>{
+    // Try to sort numerically when possible (e.g., thickness)
+    const na = parseFloat(a); const nb = parseFloat(b);
+    if(!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  typesForSize.forEach(t=>{
+    const o = document.createElement('option'); o.value = t; o.textContent = t; $ptype.appendChild(o);
+  });
+  updateUnit();
+}
+
+function updateUnit(){
+  const cat = $cat.value;
+  const sizeKey = $size.value;
+  const type = $ptype.value;
+  const price = (DATA[cat].pricesBySize[sizeKey]||{})[type];
+  $unit.value = price ? price.toLocaleString('en-IN') : '';
+}
+
+function addItem(){
+  const cat = $cat.value;
+  const size = $size.value;
+  const type = $ptype.value;
+  const pipes = Math.max(1, parseInt($pipes.value||'1',10));
+  const perM = (DATA[cat].pricesBySize[size]||{})[type];
+  if(!perM) return alert('Invalid selection');
+
+  const metres = pipes * 6;
+  const discountPct = parseFloat($disc.value)||0;
+  const netPerM = perM * (1 - discountPct/100);
+  const lineTotal = netPerM * metres;
+
+  rows.push({cat,size,type,perM,discountPct,pipes,metres,total:lineTotal});
+  renderRows();
+  $pipes.value = 1;
+}
+
+function renderRows(){
+  $tbody.innerHTML = '';
+  rows.forEach((r,idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.cat}</td>
+      <td>${r.size}</td>
+      <td>${r.type}</td>
+      <td>₹${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+      <td>${r.pipes}</td>
+      <td>${r.metres}</td>
+      <td>₹${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+      <td><button class="btn secondary" onclick="removeRow(${idx})">X</button></td>
+    `;
+    $tbody.appendChild(tr);
+  });
+  recalc();
+}
+
+function removeRow(i){ rows.splice(i,1); renderRows(); }
+
+function recalc(){
+  const sub = rows.reduce((a,b)=>a+b.total, 0);
+  const gst = +(sub * 0.18).toFixed(2);
+  const grand = sub + gst;
+  $sub.textContent   = "₹" + sub.toLocaleString('en-IN',{maximumFractionDigits:2});
+  $gst.textContent   = "₹" + gst.toLocaleString('en-IN',{maximumFractionDigits:2});
+  $grand.textContent = "₹" + grand.toLocaleString('en-IN',{maximumFractionDigits:2});
+}
+
+function resetAll(){ rows = []; renderRows(); recalc(); }
+
+/* ========= PDF ========= */
+function downloadPDF(){
+  recalc();
+  const { jsPDF } = window.jspdf; const doc = new jsPDF();
+
+  doc.setFontSize(14);
+  doc.text('Jindal Star Pipes – Quotation', 14, 14);
+  doc.setFontSize(10);
+  doc.text('Vijay Sales Corporation • sales@vijaysalescorp.com • +91 9999889008',14,20);
+
+  const body = rows.length ? rows.map(r=>[
+    r.cat, r.size, r.type,
+    `₹/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}`,
+    r.pipes, r.metres,
+    `₹ ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}`
+  ]) : [['-','-','-','-','-','-','-']];
+
+  doc.autoTable({
+    startY: 26,
+    head: [['Product','Size (mm)','Type','Unit (₹/m)','Pipes','Metres','Line Total (₹)']],
+    body
+  });
+
+  const y = (doc.lastAutoTable?.finalY || 26) + 8;
+  const sub = rows.reduce((a,b)=>a+b.total, 0);
+  const gst = +(sub * 0.18).toFixed(2);
+  const grand = sub + gst;
+
+  doc.setFontSize(11);
+  doc.text(`Sub-Total: ₹ ${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y);
+  doc.text(`GST (18%): ₹ ${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+6);
+  doc.setFont(undefined,'bold');
+  doc.text(`Grand Total: ₹ ${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+14);
+  doc.setFont(undefined,'normal');
+  doc.setFontSize(9);
+  doc.text('Notes: Rates are EX Delhi; Cartage & Freight extra as per actual. GST @ 18% extra. Price list at dispatch applies. 1 pipe = 6 metres.', 14, y+22);
+
+  doc.save('Jindal-Star-Pipes-Quotation.pdf');
+}
+
+/* ========= WhatsApp ========= */
+function sendWA(){
+  recalc();
+  let msg = 'Jindal Star Pipes Quotation – Vijay Sales Corporation\n\n';
+  if(!rows.length){ msg += '(No items added)\n'; }
+  rows.forEach(r=>{
+    msg += `• ${r.cat} | ${r.size} mm | ${r.type} | Pipes ${r.pipes} | Metres ${r.metres} | Unit ₹/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})} | Line ₹ ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}\n`;
+  });
+  const sub = rows.reduce((a,b)=>a+b.total, 0);
+  const gst = +(sub * 0.18).toFixed(2);
+  const grand = sub + gst;
+
+  msg += `\nSub-Total: ₹${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
+  msg += `\nGST (18%): ₹${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
+  msg += `\nGrand Total: ₹${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}\n\n`;
+  msg += `Contact: 9999889008 • sales@vijaysalescorp.com`;
+
+  const url = `https://wa.me/919999889008?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+</script>
+</body>
+</html>
