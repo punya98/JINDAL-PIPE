@@ -53,10 +53,10 @@
     #quoteTable tbody td:nth-child(1)::before{content:"Product: ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(2)::before{content:"Size (mm): ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(3)::before{content:"Type: ";font-weight:700;color:#667085;display:block}
-    #quoteTable tbody td:nth-child(4)::before{content:"Unit (₹/m): ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(4)::before{content:"Unit (INR/m): ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(5)::before{content:"Pipes: ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(6)::before{content:"Metres: ";font-weight:700;color:#667085;display:block}
-    #quoteTable tbody td:nth-child(7)::before{content:"Line Total (₹): ";font-weight:700;color:#667085;display:block}
+    #quoteTable tbody td:nth-child(7)::before{content:"Line Total (INR): ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(8)::before{content:"Remove: ";font-weight:700;color:#667085;display:block}
     #quoteTable tbody td:nth-child(8){grid-column:1 / -1;justify-self:end}
 
@@ -103,7 +103,7 @@
       </div>
 
       <div>
-        <label for="unitPrice">List Price (₹/metre)</label>
+        <label for="unitPrice">List Price (INR/metre)</label>
         <input type="text" id="unitPrice" readonly>
       </div>
       <div>
@@ -129,10 +129,10 @@
             <th>Product</th>
             <th>Size (mm)</th>
             <th>Type</th>
-            <th>Unit (₹/m)</th>
+            <th>Unit (INR/m)</th>
             <th>Pipes</th>
             <th>Metres</th>
-            <th>Line Total (₹)</th>
+            <th>Line Total (INR)</th>
             <th>Remove</th>
           </tr>
         </thead>
@@ -140,17 +140,17 @@
         <tfoot>
           <tr>
             <td colspan="6" style="text-align:right">Sub-Total</td>
-            <td id="subTotal">₹0</td>
+            <td id="subTotal">INR0</td>
             <td></td>
           </tr>
           <tr>
             <td colspan="6" style="text-align:right">GST (18%)</td>
-            <td id="gstAmt">₹0</td>
+            <td id="gstAmt">INR0</td>
             <td></td>
           </tr>
           <tr>
             <td colspan="6" style="text-align:right"><strong>Grand Total</strong></td>
-            <td id="grandTotal">₹0</td>
+            <td id="grandTotal">INR0</td>
             <td></td>
           </tr>
         </tfoot>
@@ -172,7 +172,7 @@
 </main>
 
 <script>
-/* ========= PRICE DATA (₹/metre) =========
+/* ========= PRICE DATA (INR/metre) =========
    From JINDAL STAR PRICE LIST 07/07/2025 (per metre). Unavailable entries removed.
 */
 const DATA = {
@@ -319,10 +319,10 @@ function renderRows(){
       <td>${r.cat}</td>
       <td>${r.size}</td>
       <td>${r.type}</td>
-      <td>₹${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+      <td>INR${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
       <td>${r.pipes}</td>
       <td>${r.metres}</td>
-      <td>₹${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+      <td>INR${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
       <td><button class="btn secondary" onclick="removeRow(${idx})">X</button></td>
     `;
     $tbody.appendChild(tr);
@@ -336,9 +336,9 @@ function recalc(){
   const sub = rows.reduce((a,b)=>a+b.total, 0);
   const gst = +(sub * 0.18).toFixed(2);
   const grand = sub + gst;
-  $sub.textContent   = "₹" + sub.toLocaleString('en-IN',{maximumFractionDigits:2});
-  $gst.textContent   = "₹" + gst.toLocaleString('en-IN',{maximumFractionDigits:2});
-  $grand.textContent = "₹" + grand.toLocaleString('en-IN',{maximumFractionDigits:2});
+  $sub.textContent   = "INR" + sub.toLocaleString('en-IN',{maximumFractionDigits:2});
+  $gst.textContent   = "INR" + gst.toLocaleString('en-IN',{maximumFractionDigits:2});
+  $grand.textContent = "INR" + grand.toLocaleString('en-IN',{maximumFractionDigits:2});
 }
 
 function resetAll(){ rows = []; renderRows(); recalc(); }
@@ -355,14 +355,14 @@ function downloadPDF(){
 
   const body = rows.length ? rows.map(r=>[
     r.cat, r.size, r.type,
-    `₹/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}`,
+    `INR/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})}`,
     r.pipes, r.metres,
-    `₹ ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}`
+    `INR ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}`
   ]) : [['-','-','-','-','-','-','-']];
 
   doc.autoTable({
     startY: 26,
-    head: [['Product','Size (mm)','Type','Unit (₹/m)','Pipes','Metres','Line Total (₹)']],
+    head: [['Product','Size (mm)','Type','Unit (INR/m)','Pipes','Metres','Line Total (INR)']],
     body
   });
 
@@ -372,10 +372,10 @@ function downloadPDF(){
   const grand = sub + gst;
 
   doc.setFontSize(11);
-  doc.text(`Sub-Total: ₹ ${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y);
-  doc.text(`GST (18%): ₹ ${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+6);
+  doc.text(`Sub-Total: INR ${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y);
+  doc.text(`GST (18%): INR ${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+6);
   doc.setFont(undefined,'bold');
-  doc.text(`Grand Total: ₹ ${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+14);
+  doc.text(`Grand Total: INR ${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}`, 14, y+14);
   doc.setFont(undefined,'normal');
   doc.setFontSize(9);
   doc.text('Notes: Rates are EX Delhi; Cartage & Freight extra as per actual. GST @ 18% extra. Price list at dispatch applies. 1 pipe = 6 metres.', 14, y+22);
@@ -389,15 +389,15 @@ function sendWA(){
   let msg = 'Jindal Star Pipes Quotation – Vijay Sales Corporation\n\n';
   if(!rows.length){ msg += '(No items added)\n'; }
   rows.forEach(r=>{
-    msg += `• ${r.cat} | ${r.size} mm | ${r.type} | Pipes ${r.pipes} | Metres ${r.metres} | Unit ₹/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})} | Line ₹ ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}\n`;
+    msg += `• ${r.cat} | ${r.size} mm | ${r.type} | Pipes ${r.pipes} | Metres ${r.metres} | Unit INR/m ${(r.perM*(1-r.discountPct/100)).toLocaleString('en-IN',{maximumFractionDigits:2})} | Line INR ${r.total.toLocaleString('en-IN',{maximumFractionDigits:2})}\n`;
   });
   const sub = rows.reduce((a,b)=>a+b.total, 0);
   const gst = +(sub * 0.18).toFixed(2);
   const grand = sub + gst;
 
-  msg += `\nSub-Total: ₹${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
-  msg += `\nGST (18%): ₹${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
-  msg += `\nGrand Total: ₹${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}\n\n`;
+  msg += `\nSub-Total: INR${sub.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
+  msg += `\nGST (18%): INR${gst.toLocaleString('en-IN',{maximumFractionDigits:2})}`;
+  msg += `\nGrand Total: INR${grand.toLocaleString('en-IN',{maximumFractionDigits:2})}\n\n`;
   msg += `Contact: 9999889008 • sales@vijaysalescorp.com`;
 
   const url = `https://wa.me/919999889008?text=${encodeURIComponent(msg)}`;
